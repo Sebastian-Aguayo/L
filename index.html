@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lirio Mágico en Maceta</title>
+  <style>
+    body {
+      background: linear-gradient(to top, #a3caff, #fff6e7);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* PARTÍCULAS MÁGICAS */
+    .magic-particle {
+      position: absolute;
+      width: 0.8vmin;
+      height: 0.8vmin;
+      background: radial-gradient(circle, #ffe59e, #ffbe2e);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 15;
+      filter: blur(0.1vmin);
+    }
+    .magic-particle.active {
+      animation: particle-float 2.5s ease-out forwards;
+    }
+    @keyframes particle-float {
+      0% { opacity: 1; transform: translateY(0) scale(0.3); }
+      50% { opacity: 0.8; transform: translateY(-15vmin) scale(1) rotate(180deg); }
+      100% { opacity: 0; transform: translateY(-25vmin) scale(0.2) rotate(360deg); }
+    }
+
+    /* ONDAS DE ENERGÍA */
+    .energy-wave {
+      position: absolute;
+      left: 50%;
+      bottom: 8vmin;
+      transform: translateX(-50%);
+      width: 20vmin;
+      height: 20vmin;
+      border: 0.3vmin solid #ffe59e88;
+      border-radius: 50%;
+      opacity: 0;
+      z-index: 5;
+    }
+    .energy-wave.active {
+      animation: wave-expand 1.2s ease-out forwards;
+    }
+    @keyframes wave-expand {
+      0% { opacity: 0.8; transform: translateX(-50%) scale(0.2); }
+      100% { opacity: 0; transform: translateX(-50%) scale(3); }
+    }
+
+    /* MACETA CON EFECTOS */
+    .pot-container {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 16vmin;
+      height: 16vmin;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+    .pot-container:hover {
+      transform: translateX(-50%) scale(1.05);
+      filter: drop-shadow(0 0 1vmin #ffd379);
+    }
+    .pot {
+      position: relative;
+      width: 13vmin;
+      height: 9vmin;
+      background: linear-gradient(to bottom, #b67845 85%, #542c10 100%);
+      border-radius: 0 0 6vmin 6vmin / 0 0 8vmin 8vmin;
+      border-bottom: 1vmin solid #8d4f24;
+      box-shadow: 0 2vmin 2vmin -1vmin #9c6640bb;
+      z-index: 2;
+      transition: all 0.2s;
+    }
+    .pot-rim {
+      position: absolute;
+      top: -2.1vmin;
+      left: -1.4vmin;
+      width: 15.8vmin;
+      height: 3vmin;
+      background: linear-gradient(to top, #df9640 60%, #a7531a 100%);
+      border-radius: 6vmin 6vmin 4vmin 4vmin / 7vmin 7vmin 2vmin 2vmin;
+      box-shadow: 0 0.7vmin 1.2vmin -0.7vmin #61321380;
+      z-index: 3;
+    }
+    .pot-soil {
+      position: absolute;
+      width: 11vmin;
+      height: 2vmin;
+      left: 1vmin;
+      top: -1vmin;
+      background: radial-gradient(circle, #61482b 80%, #3e2820 100%);
+      border-radius: 2vmin 2vmin 2vmin 2vmin;
+      z-index: 4;
+    }
+
+    /* BRILLO MÁGICO AL HACER CLIC */
+    .pot-container.clicked .pot {
+      animation: pot-glow 0.6s ease-out;
+    }
+    @keyframes pot-glow {
+      0% { filter: brightness(1); box-shadow: 0 2vmin 2vmin -1vmin #9c6640bb; }
+      50% { filter: brightness(1.3); box-shadow: 0 0 2vmin #ffd379, 0 2vmin 2vmin -1vmin #9c6640bb; }
+      100% { filter: brightness(1); box-shadow: 0 2vmin 2vmin -1vmin #9c6640bb; }
+    }
+
+    /* FLOR CON EFECTOS MEJORADOS */
+    .lily_wrapper {
+      position: absolute;
+      left: 50%;
+      bottom: 6.8vmin;
+      transform: translateX(-50%);
+      display: none;
+      z-index: 9;
+    }
+    .lily_wrapper.reveal {
+      display: block;
+      animation: grow-flower 2s cubic-bezier(.34,.46,.43,1.2) forwards;
+    }
+    .lily_wrapper.grown {
+      animation: moving-lily 4s linear infinite alternate;
+    }
+    @keyframes grow-flower {
+      0% { transform: translateX(-50%) scaleY(0) rotateX(90deg); opacity: 0; }
+      30% { opacity: 0.3; }
+      70% { opacity: 0.8; transform: translateX(-50%) scaleY(0.7) rotateX(20deg); }
+      100% { transform: translateX(-50%) scaleY(1) rotateX(0deg); opacity: 1; }
+    }
+    @keyframes moving-lily {
+      0% { transform: translateX(-50%) rotate(-2deg); }
+      100% { transform: translateX(-50%) rotate(1deg); }
+    }
+
+    .lily_stem {
+      width: 1.3vmin;
+      height: 47vmin;
+      background: linear-gradient(to top, #7fd878, #1f4820);
+      border-radius: 3vmin;
+      box-shadow: 0 0.7vmin 1.3vmin #166820a6;
+      margin-left: 5.6vmin;
+    }
+
+    /* CENTRO CON PULSO */
+    .lily_center {
+      position: absolute;
+      top: -4vmin;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5.3vmin;
+      height: 5.3vmin;
+      background: radial-gradient(circle, #ffe59e 80%, #ffbe2e 100%);
+      border-radius: 50%;
+      z-index: 6;
+      box-shadow: 0 0 0.7vmin 0.25vmin #f7f172bb, inset 0 0 1.2vmin #fff67663;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .lily_wrapper.grown .lily_center {
+      animation: center-pulse 3s ease-in-out infinite;
+    }
+    @keyframes center-pulse {
+      0%, 100% { box-shadow: 0 0 0.7vmin 0.25vmin #f7f172bb, inset 0 0 1.2vmin #fff67663; }
+      50% { box-shadow: 0 0 1.5vmin 0.7vmin #f7f17299, inset 0 0 2vmin #fff676aa; }
+    }
+
+    /* PÉTALOS CON SHIMMER - SOLO CAMBIO DE COLOR */
+    .lily_petal {
+      position: absolute;
+      left: 50%;
+      top: -15vmin;
+      width: 7.5vmin;
+      height: 23vmin;
+      background: linear-gradient(to bottom, #fff 65%, #ffcde6 98%);
+      border-radius: 50% 50% 90% 90%/ 90% 90% 40% 60%;
+      box-shadow: 0 2vmin 2.5vmin -2vmin #ff9ec961;
+      clip-path: polygon(50% 0%, 70% 18%, 92% 25%, 84% 60%, 65% 100%, 50% 86%, 35% 100%, 16% 60%, 8% 25%, 30% 18%);
+      z-index: 3;
+      transform-origin: 50% 90%;
+      overflow: hidden;
+    }
+    /* Brillo que se mueve por los pétalos */
+    .lily_petal::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
+      transform: rotate(45deg);
+      opacity: 0;
+    }
+    .lily_wrapper.grown .lily_petal::before {
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      50% { opacity: 1; transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .lily_petal-1 { transform: translateX(-50%) rotate(0deg); animation: lily-petal-anim 1.6s 0.2s backwards; }
+    .lily_petal-2 { transform: translateX(-50%) rotate(60deg); animation: lily-petal-anim 1.6s 0.33s backwards; }
+    .lily_petal-3 { transform: translateX(-50%) rotate(120deg); animation: lily-petal-anim 1.6s 0.38s backwards; }
+    .lily_petal-4 { transform: translateX(-50%) rotate(180deg); animation: lily-petal-anim 1.6s 0.43s backwards; }
+    .lily_petal-5 { transform: translateX(-50%) rotate(240deg); animation: lily-petal-anim 1.6s 0.48s backwards; }
+    .lily_petal-6 { transform: translateX(-50%) rotate(300deg); animation: lily-petal-anim 1.6s 0.53s backwards; }
+    @keyframes lily-petal-anim {
+      0% { opacity: 0; transform: scaleY(0.35) translateX(-50%) rotate(var(--angle)); }
+      90% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    /* ESTAMBRES ANIMADOS */
+    .lily_stamen {
+      position: absolute;
+      left: 50%;
+      top: -1vmin;
+      width: 0.35vmin;
+      height: 7vmin;
+      transform-origin: 50% 90%;
+      background: linear-gradient(to top, #d78e43 70%, #fff2c3 100%);
+      border-radius: 0.5vmin;
+      z-index: 7;
+    }
+    .lily_wrapper.grown .lily_stamen {
+      animation: stamen-wiggle 2s infinite alternate;
+    }
+    .lily_stamen::after {
+      content: "";
+      display: block;
+      width: 1vmin;
+      height: 1vmin;
+      background: radial-gradient(circle, #ff9c1b 70%, #ffecb5 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: -0.7vmin;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 0.3vmin #ff89219f;
+    }
+    .lily_stamen-1 { transform: translateX(-50%) rotate(-30deg); }
+    .lily_stamen-2 { transform: translateX(-50%) rotate(-10deg); }
+    .lily_stamen-3 { transform: translateX(-50%) rotate(10deg); }
+    .lily_stamen-4 { transform: translateX(-50%) rotate(30deg); }
+    .lily_stamen-5 { transform: translateX(-50%) rotate(-18deg); }
+    .lily_stamen-6 { transform: translateX(-50%) rotate(18deg); }
+    @keyframes stamen-wiggle {
+      0% { transform: scaleY(0.96) translateX(-50%) rotate(var(--angle)); }
+      100% { transform: scaleY(1.04) translateX(-50%) rotate(var(--angle)); }
+    }
+
+    /* HOJAS CON ONDULACIÓN */
+    .lily_leaf, .lily_leaf-2 {
+      position: absolute;
+      width: 10vmin;
+      height: 26vmin;
+      border-radius: 11vmin 2vmin 12vmin 4vmin;
+      z-index: 2;
+      box-shadow: 0 4vmin 2vmin -2vmin #33aa3355;
+      background: radial-gradient(ellipse at left, #bfffb7 60%, #2c8545 100%);
+    }
+    .lily_leaf {
+      left: 63%;
+      bottom: 9vmin;
+      transform: translateX(-60%) rotate(80deg);
+    }
+    .lily_leaf-2 {
+      left: 36%;
+      bottom: 13vmin;
+      transform: translateX(-65%) rotate(-70deg);
+      background: radial-gradient(ellipse at right, #c6ffd1 60%, #1a7334 100%);
+    }
+    .lily_wrapper.grown .lily_leaf {
+      animation: leaf-sway 3.5s ease-in-out infinite alternate;
+    }
+    .lily_wrapper.grown .lily_leaf-2 {
+      animation: leaf-sway-2 4s ease-in-out infinite alternate;
+    }
+    @keyframes leaf-sway {
+      0% { transform: translateX(-60%) rotate(80deg); }
+      100% { transform: translateX(-60%) rotate(85deg); }
+    }
+    @keyframes leaf-sway-2 {
+      0% { transform: translateX(-65%) rotate(-70deg); }
+      100% { transform: translateX(-65%) rotate(-75deg); }
+    }
+
+
+    .nebula {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: url('ruta/a/niebla-rosa.png') center/cover no-repeat;
+  opacity: 0.2;
+  animation: drift 30s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes drift {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(20vmin, 10vmin); }
+}
+
+.lily_wrapper:hover::after {
+  content: "";
+  position: absolute;
+  bottom: -2vmin;
+  left: 50%;
+  width: 20vmin;
+  height: 4vmin;
+  background: radial-gradient(ellipse at center, rgba(255,140,200,0.3), transparent 80%);
+  transform: translateX(-50%) scaleX(1.2);
+  filter: blur(0.5vmin);
+  animation: sway-shadow 4s ease-in-out infinite alternate;
+  z-index: 1;
+}
+@keyframes sway-shadow {
+  from { transform: translateX(-50%) rotate(0deg) scaleX(1.2); }
+  to   { transform: translateX(-50%) rotate(5deg) scaleX(1.3); }
+}
+
+
+
+    /* INDICADOR */
+    .click-tip {
+      position: absolute;
+      left: 50%;
+      bottom: 16.5vmin;
+      transform: translateX(-50%);
+      font-size: 1.3vmin;
+      color: #543609;
+      font-weight: bold;
+      background: #fffceecb;
+      padding: 0.2em 1em;
+      border-radius: 1em;
+      transition: opacity 0.5s;
+      pointer-events: none;
+      z-index: 30;
+      animation: tip-bounce 1.3s infinite alternate;
+    }
+    @keyframes tip-bounce {
+      0% { transform: translateX(-50%) translateY(0); }
+      100% { transform: translateX(-50%) translateY(-0.7vmin); }
+    }
+    .click-tip.hide { opacity: 0; }
+  </style>
+</head>
+<body>
+  <!-- Ondas de energía -->
+  <div class="energy-wave" id="wave1"></div>
+  <div class="energy-wave" id="wave2"></div>
+  <div class="energy-wave" id="wave3"></div>
+
+  <!-- Partículas mágicas -->
+  <div class="magic-particle" id="particle1"></div>
+  <div class="magic-particle" id="particle2"></div>
+  <div class="magic-particle" id="particle3"></div>
+  <div class="magic-particle" id="particle4"></div>
+  <div class="magic-particle" id="particle5"></div>
+  <div class="magic-particle" id="particle6"></div>
+
+  <div class="pot-container" id="maceta">
+    <div class="pot">
+      <div class="pot-soil"></div>
+      <div class="pot-rim"></div>
+    </div>
+    <span class="click-tip" id="tip">✨</span>
+  </div>
+
+  <div class="lily_wrapper" id="lilyWrapper">
+    <div class="lily_stem"></div>
+    <div class="lily_center">
+      <div class="lily_stamen lily_stamen-1"></div>
+      <div class="lily_stamen lily_stamen-2"></div>
+      <div class="lily_stamen lily_stamen-3"></div>
+      <div class="lily_stamen lily_stamen-4"></div>
+      <div class="lily_stamen lily_stamen-5"></div>
+      <div class="lily_stamen lily_stamen-6"></div>
+    </div>
+    <div class="lily_petal lily_petal-1"></div>
+    <div class="lily_petal lily_petal-2"></div>
+    <div class="lily_petal lily_petal-3"></div>
+    <div class="lily_petal lily_petal-4"></div>
+    <div class="lily_petal lily_petal-5"></div>
+    <div class="lily_petal lily_petal-6"></div>
+    <div class="lily_leaf lily_leaf-1"></div>
+    <div class="lily_leaf lily_leaf-2"></div>
+  </div>
+
+  <script>
+    const maceta = document.getElementById('maceta');
+    const flower = document.getElementById('lilyWrapper');
+    const tip = document.getElementById('tip');
+
+    maceta.addEventListener('click', function() {
+      // Agregar clase de clic a la maceta
+      maceta.classList.add('clicked');
+      
+      // Mostrar ondas de energía
+      document.getElementById('wave1').classList.add('active');
+      setTimeout(() => document.getElementById('wave2').classList.add('active'), 200);
+      setTimeout(() => document.getElementById('wave3').classList.add('active'), 400);
+      
+      // Crear partículas mágicas
+      setTimeout(() => {
+        for(let i = 1; i <= 6; i++) {
+          const particle = document.getElementById('particle' + i);
+          particle.style.left = (48 + Math.random() * 4) + '%';
+          particle.style.bottom = (8 + Math.random() * 3) + 'vmin';
+          particle.classList.add('active');
+        }
+      }, 300);
+
+      // Mostrar la flor
+      setTimeout(() => {
+        flower.classList.add('reveal');
+        if(tip) tip.classList.add('hide');
+      }, 600);
+
+      // Agregar animaciones continuas después del crecimiento
+      setTimeout(() => {
+        flower.classList.add('grown');
+      }, 2600);
+
+      // Limpiar clases después de las animaciones
+      setTimeout(() => {
+        maceta.classList.remove('clicked');
+        document.querySelectorAll('.energy-wave').forEach(w => w.classList.remove('active'));
+        document.querySelectorAll('.magic-particle').forEach(p => p.classList.remove('active'));
+      }, 3000);
+      
+    });
+    
+  </script>
+  <style>
+  /* ...deja todo tu CSS igual... */
+
+  /* PÉTALOS: color rosado + vetas centrales y puntitos */
+  .lily_petal {
+    position: absolute;
+    left: 50%;
+    top: -15vmin;
+    width: 7.5vmin;
+    height: 23vmin;
+
+    /* Base blanco-rosado (más rosa que antes) */
+    background: linear-gradient(to bottom, #fff 45%, #ffc2df 78%, #ff99cc 98%);
+    border-radius: 50% 50% 90% 90%/ 90% 90% 40% 60%;
+    box-shadow: 0 2vmin 2.5vmin -2vmin rgba(255, 140, 200, 0.45);
+
+    clip-path: polygon(50% 0%, 70% 18%, 92% 25%, 84% 60%, 65% 100%, 50% 86%, 35% 100%, 16% 60%, 8% 25%, 30% 18%);
+    z-index: 3;
+    transform-origin: 50% 90%;
+    overflow: hidden;
+    animation: open-flower 2s 1s backwards;
+  }
+
+  /* Veta central rosada (línea del centro del pétalo) */
+  .lily_petal::before {
+    content: "";
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0.5vmin;
+    height: 78%;
+    background: linear-gradient(to bottom, #e91e63 15%, #ff9dcf 55%, rgba(255, 157, 207, 0) 100%);
+    border-radius: 0.25vmin;
+    filter: blur(0.2px);
+    opacity: 0.85;
+  }
+
+  /* Puntitos rosados característicos */
+  .lily_petal::after {
+    content: "";
+    position: absolute;
+    top: 42%;
+    left: 28%;
+    width: 44%;
+    height: 36%;
+    background-image:
+      radial-gradient(circle, #e91e63 0.14vmin, transparent 0.22vmin),
+      radial-gradient(circle, #e91e63 0.12vmin, transparent 0.20vmin),
+      radial-gradient(circle, #e91e63 0.1vmin, transparent 0.16vmin),
+      radial-gradient(circle, #e91e63 0.09vmin, transparent 0.14vmin);
+    background-size: 14% 16%, 12% 14%, 13% 12%, 11% 12%;
+    background-position: 10% 18%, 40% 40%, 72% 30%, 55% 70%;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+  }
+
+  
+
+  /* Mantén tus clases .lily_petal-1 ... .lily_petal-6 igual */
+  .petal-fall {
+  position: absolute;
+  top: -5vmin;
+  width: 1vmin; height: 1vmin;
+  background: pink;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: fall 8s linear infinite;
+  
+}
+@keyframes fall {
+  to { transform: translateY(120vh) rotate(360deg); opacity: 0; }
+}
+/* 1. Fondo con degradado rosado suave */
+body {
+  background: linear-gradient(to top, #ffc2df, #fff0f6);
+}
+
+/* 2. Partículas mágicas rosadas */
+.magic-particle {
+  background: radial-gradient(circle, #ffe0f0, #ff99cc);
+}
+.energy-wave {
+  border-color: #ff99cc88;
+}
+
+/* 3. Brillo de la maceta rosado */
+.pot-container:hover {
+  filter: drop-shadow(0 0 1vmin #ff99cc);
+}
+
+/* 4. Tinta y color de texto pink */
+.click-tip {
+  color: #b30059;
+  background: #ffe6f2cc;
+}
+
+/* 5. Detalles de la flor más rosados */
+.lily_center {
+  background: radial-gradient(circle, #ffd1dc 80%, #ff99cc 100%);
+  box-shadow: 0 0 0.7vmin 0.25vmin #ffc1d4bb, inset 0 0 1.2vmin #ffe0ec63;
+}
+.lily_petal {
+  background: linear-gradient(to bottom, #fff0f6 45%, #ffbfdc 78%, #ff99cc 98%);
+  box-shadow: 0 2vmin 2.5vmin -2vmin rgba(255, 105, 180, 0.45);
+}
+.lily_petal::before {
+  background: linear-gradient(to bottom, #d81b60 15%, #ff80ab 55%, rgba(255, 128, 171, 0) 100%);
+}
+.lily_petal::after {
+  background-image:
+    radial-gradient(circle, #d81b60 0.14vmin, transparent 0.22vmin),
+    radial-gradient(circle, #d81b60 0.12vmin, transparent 0.20vmin),
+    radial-gradient(circle, #d81b60 0.1vmin, transparent 0.16vmin),
+    radial-gradient(circle, #d81b60 0.09vmin, transparent 0.14vmin);
+}
+
+/* 6. Pétalos flotantes (rosa tenue) */
+.petal-fall {
+  background: #ffb6c1;
+}
+
+/* 7. Botón Tema: estilo rosado */
+#toggle-theme {
+  background: rgba(255,192,203,0.7);
+  color: #800040;
+  border: 1px solid #ff80a0;
+}
+#toggle-theme:hover {
+  background: rgba(255,182,193,0.9);
+}
+
+/* 8. Footer rosado suave */
+footer {
+  color: #9e005d;
+  background: #ffe6f2aa;
+}
+
+/* 9. Fuente cursiva romántica */
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+body {
+  font-family: 'Great Vibes', cursive;
+}
+
+/* 10. Halo difuso general (bloom) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255,192,203,0.2), transparent 70%);
+  mix-blend-mode: screen;
+  z-index: 0;
+}
+
+/* 11. Efecto suave de desenfoque de fondo */
+body {
+  backdrop-filter: blur(2px);
+}
+
+/* 12. Sutileza de brillo pulsante en el lily_center */
+.lily_wrapper.grown .lily_center {
+  animation: center-pulse 3s ease-in-out infinite, pink-glow 4s ease-in-out infinite alternate;
+}
+@keyframes pink-glow {
+  from { box-shadow: 0 0 0.7vmin 0.25vmin #ffc1d4bb, inset 0 0 1.2vmin #ffe0ec63; }
+  to   { box-shadow: 0 0 2vmin 1vmin #ff80ab99, inset 0 0 2vmin #ffbfdc99; }
+}
+
+/* 13. Cursor personalizado */
+body {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="6" fill="%23ff99cc"/></svg>') 16 16, auto;
+}
+
+/* 14. Pequeños destellos al azar */
+@keyframes random-sparkle {
+  0%,100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.magic-particle {
+  animation-name: particle-float, random-sparkle;
+  animation-duration: 2.5s, 3s;
+  animation-delay: 0s, calc(3s * var(--i));
+}
+
+.click-ring {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0.3vmin solid #ff99cc;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.8;
+  animation: click-ring 0.8s ease-out forwards;
+}
+@keyframes click-ring {
+  to {
+    width: 15vmin;
+    height: 15vmin;
+    opacity: 0;
+  }
+}
+
+
+
+</style>
+
+
+
+</body>
+</html>
